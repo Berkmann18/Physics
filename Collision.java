@@ -111,10 +111,6 @@ class AABB{//Axe Aligned Bounding Box
 		vel.reflect(n);
 	}
 	
-	public boolean equals(Vector v){
-		return x==v.x && y==v.y;
-	}
-	
 	public AABB copy(){
 		return new ABB(x, y, w, h, vel);
 	}
@@ -128,7 +124,7 @@ class AABB{//Axe Aligned Bounding Box
 	public AABB div(int k){
 		x /= k;
 		y /= k;
-		retun this;
+		return this;
 	}
 	
 	public AABB add(Vector v){
@@ -320,13 +316,13 @@ class Vector{
 	public Vector mult(int k){
 		x *= k;
 		y *= k;
-		retun this;
+		return this;
 	}
 	
 	public Vector div(int k){
 		x /= k;
 		y /= k;
-		retun this;
+		return this;
 	}
 	
 	public Vector add(Vector v){
