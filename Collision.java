@@ -7,24 +7,24 @@ class Collision{
 	//boolean CollisionMouseAABB(AAB box)
 	
 	boolean CollisionAABB(AABB a, AABB b){//AABB/AABB
-		return !((b.x>a.x+a.w) || (b.x+b.w<a.x) || (b.y>a.y+a.h) || (b.y+b.h<a.y));
+		return !((b.x-b.border>a.x+a.w+a.border) || (b.x+b.w+b.border<a.x-a.border) || (b.y-b.border>a.y+a.h+a.border) || (b.y+b.h+b.border<a.y-a.border));
 	}
 	
 	boolean CollisionAABBCirc(AABB a, Circ b){//AABB/Circle
-		return !((b.x-b.radius>a.x+a.w) || (b.x+b.radius<a.x) || (b.y-b.radius>a.y+a.h) || (b.y+b.radius<a.y));
+		return !((b.x-b.radius-b.border>a.x+a.w+a.border) || (b.x+b.radius+b.border<a.x-a.border) || (b.y-b.radius-b.border>a.y+a.h+a.border) || (b.y+b.radius<a.y-a.border));
 	}
 	
 	boolean CollisionPtCirc(Pt p, Circ c){//Point/Circle
-		return Math.pow(p.x-c.x, 2)+Math.pow(p.y-c.y, 2) <= Math.pow(c.r, 2);
+		return Math.pow(p.x-c.x-c.border, 2)+Math.pow(p.y-c.y-c.border, 2) <= Math.pow(c.r+c.border, 2);
 	}
 	
-	boolean CollisionCirc(Circle a, Circ b){//Circle/Circle
-		return Math.pow(a.x-b.x, 2)+Math.pow(a.y-b.y, 2) <= Math.pow(a.r+b.r, 2);
+	boolean CollisionCirc(Circ a, Circ b){//Circle/Circle
+		return Math.pow(a.x+a.border-b.x-b.border, 2)+Math.pow(a.y+a.border-b.y-b.border, 2) <= Math.pow(a.r+b.r+a.border+b.border, 2);
 	}
 	
-	boolean CollisionLineCirc(Pt a, Pt b, Circ c){//Line/Circle
-		Vector u = new Vector(b.x-a.x, b.y-a.y), v = new Vector(c.x-a.x, c.y-a.y);
-		return (Math.abs(u.cross(v))/u.length())<c.r;
+	boolean CollisionLineCirc(Line l, Circ c){//Line/Circle
+		Vector u = new Vector(l.e.x-l.s.x+l.border, l.e.y-l.s.y+l.border), v = new Vector(c.x-c.border-l.s.x-l.border, c.y-c.border-l.s.y-l.border);
+		return (Math.abs(u.cross(v))/u.length())<(c.r+c.border);
 	}
 	
 	boolean CollisionSegCirc(Pt a, Pt b, Circ c){//Segment/Circle
@@ -51,13 +51,24 @@ class AABB{//Axe Aligned Bounding Box
 	int x, y, w, h, border = 1;
 	Vector vel = new Vector(0, 0), norm = new Vector(0, 0);
 	
+	AABB(Pt s, int[] size){
+		x = s.x;
+		y = s.y;
+		w = size[0];
+		h = size.length>1? size[1]: size[0];
+		border = 1;
+		vel = new Vector(0, 0);
+		norm = vel.getNormal();
+	}
+	
 	AABB(int px, int py, int pw, int ph, int b){
 		x = px;
 		y = py;
 		w = pw;
 		h = ph;
 		border = b;
-		//rect(px, py, pw, ph)
+		vel = new Vector(0, 0);
+		norm = vel.getNormal();
 	}
 	
 	AABB(int px, int py, int pw, int ph, int b, Vector v){
@@ -80,6 +91,10 @@ class AABB{//Axe Aligned Bounding Box
 		vel = norm = new Vector(0, 0);
 	}
 	
+	public boolean equals(AABB a){
+		return x==a.x && y==a.y && w==a.w && h==a.h && border==a.border && vel.equals(a.vel);
+	}
+	
 	public String toString(){
 		return "AAB(x="+x+", y="+y+", width="+w+", height="+h+", velocity="+vel.toString()+")";
 	}
@@ -90,6 +105,10 @@ class AABB{//Axe Aligned Bounding Box
 	
 	public boolean hit<T>(T obj, String side){
 		return s=='l'?  obj.offset('l')<=this.getEdge('r'): (s=='r'? obj.offset('r')>=this.getEdge('l'): (s=='u'? obj.offset('u')<=this.getEdge('d'): (s=='d'? obj.offset('d')>=this.getEdge('u'): (this.hit<T>(obj, 'l')||this.hit<T>(obj, 'r')||this.hit<T>(obj, 'u')||this.hit<T>(obj, 'd')))));
+	}
+	
+	public void bounce(Vector n){
+		vel.reflect(n);
 	}
 	
 	public boolean equals(Vector v){
@@ -140,22 +159,34 @@ class AABB{//Axe Aligned Bounding Box
 }
 
 class Circ{//Circle
-	int x, y, r;//r=radius
-	Vector vel = new Vector(0, 0), norm = new Vector(0, 0);//velocity, normal
+	int x, y, r, border;//r=radius
+	Vector vel = new Vector(0, 0), norm;//velocity, normal
 	
-	Circ(Vector p, int pr, int v){
+	Circ(Vector p, int pr, Vector v){
 		x = p.x;
 		y = p.y;
 		r = pr;
 		vel = v;
+		border = 1;
 		norm = vel.getNormal();
 	}
 	
-	Circ(int px, int py, int pr){
+	Circ(Vector p, int pr, Vector v, int b){
+		x = p.x;
+		y = p.y;
+		r = pr;
+		vel = v;
+		border = b;
+		norm = vel.getNormal();
+	}
+	
+	Circ(int px, int py, int pr, int b){
 		x = px;
 		y = py;
 		r = pr;
-		//ellipse(px, py, pr, pr)
+		border = b;
+		vel = Vector(0, 0);
+		norm = vel.getNormal();
 	}
 	
 	public void update(){
@@ -176,8 +207,12 @@ class Circ{//Circle
 		vel.reflect(n);
 	}
 	
+	public boolean equals(Circ a){
+		return x==a.x && y==a.y && r==a.r && border==a.border && vel.equals(a.vel);
+	}
+	
 	public String toString(){
-		return "Circ(x="+x+", y="+y+", radius="+r+")";
+		return "Circ(x="+x+", y="+y+", radius="+r+", velocity="+vel.toString()+")";
 	}
 	
 	public boolean hit<T>(T obj, String s){//more like a getHit(obj) but for also circle/circle situations
@@ -196,10 +231,20 @@ class Circ{//Circle
 
 class Pt{//Point
 	int x, y;
+	Vector vel;
 	Pt(int px, int py){
 		x = px;
 		y = py;
-		//point(px, py)
+		vel = Vector(0, 0);
+	}
+	
+	Pt(int p){
+		x = y = p;
+		vel = Vector(0, 0);
+	}
+	
+	public boolean equals(Pt p){
+		return x==p.x && y==p.y;
 	}
 	
 	public String toString(){
@@ -211,7 +256,43 @@ class Pt{//Point
 	}
 }
 
-class Vector{//Vector
+class Line{
+	Pt s, e;
+	int border;
+	
+	Line(Pt a, Pt b){
+		s = a;
+		e = b;
+		border = 1;
+	}
+	
+	Line(Pt a, Pt b, int b){
+		s = a;
+		e = b;
+		border = b;
+	}
+	
+	Line(Pt c){
+		s = Pt(0, 0);
+		e = c;
+		border = 1;
+	}
+	
+	Line(Pt a, Vector c){
+		s = a;
+		e = Pt(s.x+c.x, s.y+c.y);
+	}
+	
+	public boolean equals(Line l){
+		return s==l.s && e==l.e;
+	}
+	
+	public String toString(){
+		return "Line(start="+s.toString()+", end="+e.toString()+")";
+	}
+}
+
+class Vector{
 	int x, y;
 	
 	Vector(int px, int py){
