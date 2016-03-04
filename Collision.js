@@ -79,7 +79,7 @@ function AABB(px, py, pw, ph, b){//Axe Aligned Bounding Box
 		return new ABB(this.x, this.y, this.w, this.h, this.vel);
 	}
 	
-	this.mult(k){
+	this.mult = function(k){
 		this.x *= k;
 		this.y *= k;
 		return this;
@@ -88,7 +88,7 @@ function AABB(px, py, pw, ph, b){//Axe Aligned Bounding Box
 	this.div = function(k){
 		this.x /= k;
 		this.y /= k;
-		retun this;
+		return this;
 	}
 	
 	this.add = function(v){
@@ -103,12 +103,12 @@ function AABB(px, py, pw, ph, b){//Axe Aligned Bounding Box
 		return this;
 	}
 	
-	this.concat(a){
+	this.concat = function(a){
 		this.w = a.x-this.x-this.w;//or w+a.x+a.w
 		this.h = a.y-this.y-this.h;//or h+a.y+a.h
 	}
 	
-	this.deconcat(a){
+	this.deconcat = function(a){
 		this.w = (a.x-this.x)/2;//(a.x+a.w)/2
 		this.h = (a.y-this.y)/2;//(a.y+a.h)/2
 	}
@@ -132,7 +132,7 @@ function Circ(px, py, pr, b){//Circle
 		this.norm = this.vel.getNormal();
 	}
 	
-	public void stop(){
+	this.stop = function(){
 		this.vel = this.norm = new Vector(0, 0);
 	}
 	
@@ -222,7 +222,7 @@ function Vector(px, py){
 	this.div = function(k){
 		this.x /= k;
 		this.y /= k;
-		retun this;
+		return this;
 	}
 	
 	this.add = function(v){
@@ -231,13 +231,13 @@ function Vector(px, py){
 		return this;
 	}
 	
-	this.sub(v){
+	this.sub = function(v){
 		this.x -= v.x;
 		this.y -= v.y;
 		return this;
 	}
 	
-	this.normalise(){
+	this.normalise = function(){
 		var v = Math.sqrt(Math.pow(this.x, 2)+Math.pow(this.y, 2));
 		this.x /= v;
         this.y /= v;
@@ -275,7 +275,7 @@ function Vector(px, py){
 	}
 	
 	this.reflect = function(normal){//.. on a normal
-		Vector n = this.normal.copy();
+		var n = this.normal.copy();
 		n.mult(2*this.dot(this.normal));
 		this.sub(n);
 		return this;
